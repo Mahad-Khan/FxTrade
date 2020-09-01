@@ -1,0 +1,17 @@
+1. CCI Percentile
+	df.rank() / (len(df) - n)
+2. Divergence Factor 4
+	CCI percentile - PNL Percentile
+3. Divergence Factor 4 Rank
+	df['Divergence Factor 4 Rank'] = df['Divergence Factor 4'].rank(ascending=0)
+4. DF Avg Rank
+	df['DF Avg Rank'] = (
+            df['Divergence Factor 1 Rank'] +
+            df['Divergence Factor 2 Rank'] +
+            df['Divergence Factor 3 Rank'] +
+	    df['Divergence Factor 4 Rank']
+        ) / 4.0
+5. % Rank of DF Avgs
+	#df['DF Avgs Ranks'] = df['DF Avg Rank'].rank(method='min')
+	df['% Rank of DF Avgs'] = df['DF Avg Rank'].rank(method='min')
+6)MACD column add in file

@@ -1,0 +1,2 @@
+1)ordering conditions ki base p
+2)Datet,ime,,Price,DF1--DF4,DF Avg,DF Avg Rank
