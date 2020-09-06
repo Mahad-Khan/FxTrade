@@ -433,8 +433,8 @@ def main():
         #ccis=list(ccis)
         instruments_list.append(instrument)
         CCI_list.append(ccis[-1])
+        print(len(ccis))
         dic_for_all_cci[instrument]=ccis
-
         stock[instrument]["CCI"]=ccis
       
 
@@ -564,6 +564,7 @@ def main():
         ) / 4.0
 
         df_instrument=pd.DataFrame()
+        df_instrument["Open"]=stock[instrument]["Open"]
         df_instrument["High"]=stock[instrument]['High']
         df_instrument["Low"]=stock[instrument]['Low']
         df_instrument["Close"]=stock[instrument]['Close']
@@ -575,6 +576,12 @@ def main():
         df_instrument["Divergence Factor 1"]=stock[instrument]['Divergence Factor 1']
         df_instrument["Divergence Factor 2"]=stock[instrument]['Divergence Factor 2']
         df_instrument["Divergence Factor 3"]=stock[instrument]['Divergence Factor 3']
+
+        df_instrument["Momentum Factor 1"]=stock[instrument]["M_MACD_CHANGE"]
+        df_instrument["Momentum Factor 2"]=stock[instrument]['M_RSI_CHANGE']
+        df_instrument["Momentum Factor 3"]=stock[instrument]['Profit/Loss_10']
+        df_instrument["Momentum Factor 4"]=stock[instrument]['Profit/Loss_30']
+
         df_instrument["RSI"]=stock[instrument]["RSI"]
         df_instrument["MACD"]=stock[instrument]["MACD"]
         df_instrument["WPCTR"]=stock[instrument]["Williams PCTR"]
@@ -595,10 +602,28 @@ def main():
             df_instrument['Divergence Factor 3 Rank'] +
             df_instrument['Divergence Factor 4 Rank']
         ) / 4.0
+
+        df_instrument['Momentum Factor 1 Rank'] = rank_formulation(df_instrument['Momentum Factor 1'].values)
+        df_instrument['Momentum Factor 2 Rank'] = rank_formulation(df_instrument['Momentum Factor 2'].values)
+        df_instrument['Momentum Factor 3 Rank'] = rank_formulation(df_instrument['Momentum Factor 3'].values)
+        df_instrument['Momentum Factor 4 Rank'] = rank_formulation(df_instrument['Momentum Factor 4'].values)
+        df_instrument['MF Avg Rank'] = (
+            df_instrument['Momentum Factor 1 Rank'] +
+            df_instrument['Momentum Factor 2 Rank'] +
+            df_instrument['Momentum Factor 3 Rank'] +
+            df_instrument['Momentum Factor 4 Rank']
+        ) / 4.0
+
+
+
         df_instrument["% Rank of DF Avgs"] =rank_formulation(df_instrument['DF Avg Rank'].values)
-        df_instrument=df_instrument[['High','Low','Close','Volume','Price','Change In Price','Divergence Factor 1', 'Divergence Factor 2', 'Divergence Factor 3', 'Divergence Factor 4',
+        df_instrument["% Rank of MF Avgs"] =rank_formulation(df_instrument['MF Avg Rank'].values)
+        df_instrument=df_instrument[['Open','High','Low','Close','Volume','Price','Change In Price',
+           'Divergence Factor 1', 'Divergence Factor 2', 'Divergence Factor 3', 'Divergence Factor 4','DF Avg Rank', '% Rank of DF Avgs',
            'Divergence Factor 1 Rank', 'Divergence Factor 2 Rank', 'Divergence Factor 3 Rank','Divergence Factor 4 Rank',
-           'DF Avg Rank', '% Rank of DF Avgs','RSI', 'MACD', 'WPCTR', 'CCI', 'CCI Percentile', 'PNL Percentile','pdi', 'mdi', 'adx',]]
+           'Momentum Factor 1','Momentum Factor 2','Momentum Factor 3','Momentum Factor 4',
+           'Momentum Factor 1 Rank','Momentum Factor 2 Rank','Momentum Factor 3 Rank','Momentum Factor 4 Rank','MF Avg Rank', '% Rank of MF Avgs',
+           'RSI', 'MACD', 'WPCTR', 'CCI', 'CCI Percentile', 'PNL Percentile','pdi', 'mdi', 'adx',]]
         df_instrument.to_csv(instrument+".csv")
     
     ccis_df=pd.DataFrame(dic_for_all_cci)
@@ -639,8 +664,8 @@ def main():
         'M_RSI_CHANGE Rank',
         'Profit/Loss_10 Rank',
         'Profit/Loss_30 Rank',
-        'Momentum Average Rank',
-        'Momentum Averages Ranks',
+        'MF Avg Rank', 
+        '% Rank of MF Avgs',
         'MinMaxPosition',
         'RSI',
         'WPCTR',
@@ -702,17 +727,19 @@ def main():
         df['Divergence Factor 1 Rank'] =rank_formulation(df["Divergence Factor 1"].values)
         df['Divergence Factor 2 Rank'] = rank_formulation(df["Divergence Factor 2"].values)
         df['Divergence Factor 3 Rank'] = rank_formulation(df["Divergence Factor 3"].values)
-        df['M_MACD_CHANGE Rank'] = rank_formulation(df['M_MACD_CHANGE'].values)
-        df['M_RSI_CHANGE Rank'] = rank_formulation(df['M_RSI_CHANGE'].values)
-        df['Profit/Loss_10 Rank'] = rank_formulation(df['Profit/Loss_10'].values)
-        df['Profit/Loss_30 Rank'] = rank_formulation(df['Profit/Loss_30'].values)
-        df['Momentum Average Rank'] = (
-            df['M_MACD_CHANGE Rank'] +
-            df['M_RSI_CHANGE Rank'] +
-            df['Profit/Loss_10 Rank'] +
-            df['Profit/Loss_30 Rank']
+
+        df['Momentum Factor 1 Rank'] = rank_formulation(df['M_MACD_CHANGE'].values)
+        df['Momentum Factor 2 Rank'] = rank_formulation(df['M_RSI_CHANGE'].values)
+        df['Momentum Factor 3 Rank'] = rank_formulation(df['Profit/Loss_10'].values)
+        df['Momentum Factor 4 Rank'] = rank_formulation(df['Profit/Loss_30'].values)
+     
+        df['MF Avg Rank'] = (
+            df['Momentum Factor 1 Rank'] +
+            df['Momentum Factor 1 Rank'] +
+            df['Momentum Factor 1 Rank'] +
+            df['Momentum Factor 1 Rank']
         ) / 4.0
-        df['Momentum Averages Ranks'] = rank_formulation(df['Momentum Average Rank'].values)
+        df['% Rank of MF Avgs'] = rank_formulation(df['MF Avg Rank'].values)
 
         #df.to_excel("target_data.xlsx")
         periods.append(df)
@@ -732,9 +759,10 @@ def main():
     df["% Rank of DF Avgs"] = rank_formulation(df['DF Avg Rank'].values)
     df=df[['Price', 'Change In Price','Divergence Factor 1', 'Divergence Factor 2', 'Divergence Factor 3', 'Divergence Factor 4',
            'Divergence Factor 1 Rank', 'Divergence Factor 2 Rank', 'Divergence Factor 3 Rank','Divergence Factor 4 Rank',
-           'DF Avg Rank', '% Rank of DF Avgs', 'M_MACD_CHANGE', 'M_RSI_CHANGE', 'Profit/Loss_10', 'Profit/Loss_30', 
-           'M_MACD_CHANGE Rank', 'M_RSI_CHANGE Rank', 'Profit/Loss_10 Rank', 'Profit/Loss_30 Rank', 'Momentum Average Rank', 
-           'Momentum Averages Ranks', 'MinMaxPosition', 'RSI', 'MACD', 'WPCTR', 'CCI', 'CCI Percentile', 'PNL Percentile',
+           'DF Avg Rank', '% Rank of DF Avgs', #'Momentum Factor 1','Momentum Factor 2','Momentum Factor 3','Momentum Factor 4',
+           #'Momentum Factor 1 Rank','Momentum Factor 2 Rank','Momentum Factor 3 Rank','Momentum Factor 4 Rank','MF Avg Rank', '% Rank of MF Avgs',
+           'M_MACD_CHANGE', 'M_RSI_CHANGE', 'Profit/Loss_10', 'Profit/Loss_30','M_MACD_CHANGE Rank', 'M_RSI_CHANGE Rank', 'Profit/Loss_10 Rank', 'Profit/Loss_30 Rank',
+           'MF Avg Rank', '% Rank of MF Avgs', 'MinMaxPosition', 'RSI', 'MACD', 'WPCTR', 'CCI', 'CCI Percentile', 'PNL Percentile',
            'pdi', 'mdi', 'adx', 'High_Price(14)', 'Low_Price(14)', '5MA', '10MA', '20MA', '50MA', '100MA']]
     df.to_excel("target_data.xlsx")
     df.sort_values(by="% Rank of DF Avgs",inplace=True)
@@ -755,7 +783,23 @@ def main():
     dfDiverge=dflist.copy()  
     dfDiverge=dfDiverge.loc[dfDiverge['imp_var'].isin(['Divergence Factor 1','Divergence Factor 2','Divergence Factor 3','Divergence Factor 4'])]
     dfDiverge.reset_index(drop=True,inplace=True)
+    print(dfDiverge)
     calculation(dfDiverge) #perform rolling,MinMax,Diff calculation
+
+    if specific_insts is not None:
+        dflist1=make_impVar_for_momentum(specific_insts,False)
+    if man_inst_names is not None:
+        dflist1=make_impVar_for_momentum(man_inst_names,True)
+    dflist=dflist1+dflist2
+    dflist=pd.concat(dflist)
+    dflist.to_csv("ImpVar_forMomentum.csv")
+    dfMomentum=dflist.copy()  
+    dfMomentum=dfMomentum.loc[dfMomentum['imp_var'].isin(['Momentum Factor 1','Momentun Factor 2','Momentum Factor 3','Momentum Factor 4'])]
+    dfMomentum.reset_index(drop=True,inplace=True)
+    print(dfMomentum)
+    calculation_forMomentum(dfMomentum) #perform rolling,MinMax,Diff calculation
+    
+
     
 
     
@@ -827,6 +871,36 @@ def calculation(df):
         readDf["20 PERIOD MIN MAX PRICE DIFF"]=nperiod_MinMax_price
         readDf["DIVERGENCE DURATION"]=df_duration
        
+        if flag==True:
+            readDf.to_csv("man_select_inst"+"\\"+inst_name+"_impvar"+".csv",na_rep="NaN")
+        else:
+            readDf.to_csv("rule_select_inst"+"\\"+inst_name+"_impvar"+".csv",na_rep="NaN")
+
+
+def calculation_forMomentum(df):
+    for index, row in df.iterrows():
+        inst_name=row["instrumen_name"]
+        imp_var=row["imp_var"]
+        flag=row["flag"]
+        if flag==True:
+            readDf=pd.read_csv("man_select_inst/"+inst_name+"_impvar"+".csv")
+        else:
+            readDf=pd.read_csv("rule_select_inst/"+inst_name+"_impvar"+".csv")
+        rollingCorrdf=readDf[imp_var].rolling(20).corr(readDf['Price']) #cal. rolling imp var
+        rollingCorrAvg=readDf['% Rank of MF Avgs'].rolling(20).corr(readDf['Price']) #fixed
+        nperiod_price_change=percent_change(readDf['Price'].values,20) #fixed
+        nperiod_df_change=percent_change(readDf[imp_var].values,20) #cal. div.Factor %age change
+        nperiod_MinMax_df=MinMax_Diff(nperiod_df_change,20) #cal MinMax Diverg. difference
+        nperiod_MinMax_price=MinMax_Diff(readDf["Price"].values,20) #fixed ,cal MinMax Price difference
+        df_duration=np.array(nperiod_MinMax_df)/np.array(nperiod_MinMax_price)
+        print(df_duration)
+        readDf["Rolling correlation "+imp_var+" % Rank"]=rollingCorrdf
+        readDf["Rolling correlation Avg MF % Rank"]=rollingCorrAvg
+        readDf["20 period percentage price change"]=nperiod_price_change
+        readDf["20 period percentage " +imp_var+" change"]=nperiod_df_change
+        readDf["20 PERIOD MIN MAX DIVERGENCE DIFF"]=nperiod_MinMax_df
+        readDf["20 PERIOD MIN MAX PRICE DIFF"]=nperiod_MinMax_price
+        readDf["Momentum DURATION"]=df_duration
         if flag==True:
             readDf.to_csv("man_select_inst"+"\\"+inst_name+"_impvar"+".csv",na_rep="NaN")
         else:
@@ -1181,6 +1255,64 @@ def Divergence_Plots_For_Single_Instrument(instrument_name,flag):
         plt.savefig("rule_select_inst"+"\\"+fig_name)
         return rdf
 
+    
+def Momentum_Plots_For_Single_Instrument(instrument_name,flag):
+    data = pd.read_csv(instrument_name+".csv")
+
+    # Making a copy of data frame and dropping all the null values
+    df_copy = data.copy()
+    df_copy = df_copy.dropna(axis = 1)
+    df_copy = df_copy.dropna()
+
+    print(len(df_copy))
+
+    X = df_copy[["CCI","RSI","MACD","WPCTR","pdi","mdi","adx","Momentum Factor 1","Momentum Factor 2","Momentum Factor 3","Momentum Factor 4"]]
+    y = df_copy["MF Avg Rank"]
+
+    print(len(X),len(y))
+    # Embedded method
+    reg = LassoCV()
+    reg.fit(X, y)
+    print("Best alpha using built-in LassoCV: %f" % reg.alpha_)
+    print("Best score using built-in LassoCV: %f" %reg.score(X,y))
+    coef = pd.Series(reg.coef_, index = X.columns)
+
+    print(f"Momentum Important Features for {instrument_name}")
+
+    print("Lasso picked " + str(sum(coef != 0)) + " variables and eliminated the other " + str(sum(coef == 0)) + " variables")
+
+    dic={"instrumen_name":instrument_name,"imp_var":X.columns,"score":reg.coef_,"flag":flag}
+
+    rdf=pd.DataFrame(dic)
+    #df.drop(df[df.score<=0].index, inplace=True)
+    rdf= rdf[rdf.score>0]
+    print(rdf)
+
+
+    fig,ax = plt.subplots(1)
+    sns.set()
+    imp_coef = coef.sort_values()
+    matplotlib.rcParams['figure.figsize'] = (10, 14)
+    matplotlib.rcParams['ytick.labelsize'] = 3
+    matplotlib.rcParams['axes.labelsize'] = 3
+    matplotlib.rcParams['legend.fontsize'] = 1
+
+    plt.rc('axes', titlesize=12)
+    plt.yticks(fontsize=9.5)
+    my_colors = list(islice(cycle(['orange','b', 'r', 'g', 'y', 'k','m']), None, len(df_copy)))
+    ax = imp_coef.plot(kind = "barh", stacked=True, color=my_colors, width=0.91,align='edge')
+    ax.yaxis.label.set_size(3)
+
+    title = f"Feature importance of {instrument_name} for Momentum using the Lasso Model"
+    plt.title(title)
+    fig_name = instrument_name + "_EmbaddedMethod_ForMomentum" + ".png"
+    if flag==True:
+        plt.savefig("man_select_inst"+"\\"+fig_name)
+        return rdf
+    else:
+        plt.savefig("rule_select_inst"+"\\"+fig_name)
+        return rdf
+
 
 def plot_peaks_troughs(inst_name,flag):
     df=pd.read_csv(inst_name+".csv")
@@ -1256,7 +1388,8 @@ def Graph_Plots_For_Individual_Instrument(instrument_lst,flag):
         Plot_Items(instrument,flag)
         decompose_plot(instrument,flag)
         df_return=Divergence_Plots_For_Single_Instrument(instrument,flag)
-        dflist.append(df_return)
+        #df_return_momen=Divergence_Plots_For_Single_Instrument(instrument,flag)
+        dflist.append(df_return)#append dataframe
         plot_peaks_troughs(instrument,flag)
         Plot_Multi_Axes(instrument,flag)
         #better corr graph
@@ -1277,6 +1410,15 @@ def Graph_Plots_For_Individual_Instrument(instrument_lst,flag):
             plt.savefig("rule_select_inst"+"\\"+"PPS_"+instrument+".png")
     Divergence_Plots()
     return dflist
+
+
+def make_impVar_for_momentum(instrument_lst,flag):
+    dflist=[]
+    for instrument in instrument_lst:
+        df_return=Momentum_Plots_For_Single_Instrument(instrument,flag)
+        dflist.append(df_return)#append dataframe
+    return dflist
+
 
 def clear_direc(path):
     for root, dirs, files in os.walk(path):
