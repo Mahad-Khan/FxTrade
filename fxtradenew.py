@@ -433,7 +433,6 @@ def main():
         #ccis=list(ccis)
         instruments_list.append(instrument)
         CCI_list.append(ccis[-1])
-        print(len(ccis))
         dic_for_all_cci[instrument]=ccis
         stock[instrument]["CCI"]=ccis
       
@@ -624,7 +623,7 @@ def main():
            'Momentum Factor 1','Momentum Factor 2','Momentum Factor 3','Momentum Factor 4',
            'Momentum Factor 1 Rank','Momentum Factor 2 Rank','Momentum Factor 3 Rank','Momentum Factor 4 Rank','MF Avg Rank', '% Rank of MF Avgs',
            'RSI', 'MACD', 'WPCTR', 'CCI', 'CCI Percentile', 'PNL Percentile','pdi', 'mdi', 'adx',]]
-        df_instrument.to_csv(instrument+".csv")
+        df_instrument.to_csv("all_folders"+"\\"+instrument+".csv")
     
     ccis_df=pd.DataFrame(dic_for_all_cci)
     cci_percentile_list=[]
@@ -764,13 +763,12 @@ def main():
            'M_MACD_CHANGE', 'M_RSI_CHANGE', 'Profit/Loss_10', 'Profit/Loss_30','M_MACD_CHANGE Rank', 'M_RSI_CHANGE Rank', 'Profit/Loss_10 Rank', 'Profit/Loss_30 Rank',
            'MF Avg Rank', '% Rank of MF Avgs', 'MinMaxPosition', 'RSI', 'MACD', 'WPCTR', 'CCI', 'CCI Percentile', 'PNL Percentile',
            'pdi', 'mdi', 'adx', 'High_Price(14)', 'Low_Price(14)', '5MA', '10MA', '20MA', '50MA', '100MA']]
-    df.to_excel("target_data.xlsx")
+    df.to_excel("all_folders"+"\\"+"target_data.xlsx")
     df.sort_values(by="% Rank of DF Avgs",inplace=True)
-    df.to_excel("ordered_target_data.xlsx")
+    df.to_excel("all_folders"+"\\"+"ordered_target_data.xlsx")
     top5,last5=instrument_selection_rules(df)
     specific_insts=None
     specific_insts=top5+last5
-    print(specific_insts)
     dflist1=[]
     dflist2=[]
     if specific_insts is not None:
@@ -779,11 +777,10 @@ def main():
         dflist1=Graph_Plots_For_Individual_Instrument(man_inst_names,True)
     dflist=dflist1+dflist2
     dflist=pd.concat(dflist)
-    dflist.to_csv("ImpVar.csv")
+    dflist.to_csv("all_folders"+"\\"+"ImpVar.csv")
     dfDiverge=dflist.copy()  
     dfDiverge=dfDiverge.loc[dfDiverge['imp_var'].isin(['Divergence Factor 1','Divergence Factor 2','Divergence Factor 3','Divergence Factor 4'])]
     dfDiverge.reset_index(drop=True,inplace=True)
-    print(dfDiverge)
     calculation(dfDiverge) #perform rolling,MinMax,Diff calculation
 
     if specific_insts is not None:
@@ -792,11 +789,10 @@ def main():
         dflist1=make_impVar_for_momentum(man_inst_names,True)
     dflist=dflist1+dflist2
     dflist=pd.concat(dflist)
-    dflist.to_csv("ImpVar_forMomentum.csv")
+    dflist.to_csv("all_folders"+"\\"+"ImpVar_forMomentum.csv")
     dfMomentum=dflist.copy()  
     dfMomentum=dfMomentum.loc[dfMomentum['imp_var'].isin(['Momentum Factor 1','Momentun Factor 2','Momentum Factor 3','Momentum Factor 4'])]
     dfMomentum.reset_index(drop=True,inplace=True)
-    print(dfMomentum)
     calculation_forMomentum(dfMomentum) #perform rolling,MinMax,Diff calculation
     
 
@@ -853,7 +849,7 @@ def calculation(df):
         inst_name=row["instrumen_name"]
         imp_var=row["imp_var"]
         flag=row["flag"]
-        readDf=pd.read_csv(inst_name+".csv")
+        readDf=pd.read_csv("all_folders/"+inst_name+".csv")
         rollingCorrdf=readDf[imp_var].rolling(20).corr(readDf['Price']) #cal. rolling imp var
         rollingCorrAvg=readDf['% Rank of DF Avgs'].rolling(20).corr(readDf['Price']) #fixed
         nperiod_price_change=percent_change(readDf['Price'].values,20) #fixed
@@ -861,7 +857,7 @@ def calculation(df):
         nperiod_MinMax_df=MinMax_Diff(nperiod_df_change,20) #cal MinMax Diverg. difference
         nperiod_MinMax_price=MinMax_Diff(readDf["Price"].values,20) #fixed ,cal MinMax Price difference
         df_duration=np.array(nperiod_MinMax_df)/np.array(nperiod_MinMax_price)
-        print(df_duration)
+    
         
         readDf["Rolling correlation "+imp_var+" % Rank"]=rollingCorrdf
         readDf["Rolling correlation Avg DF % Rank"]=rollingCorrAvg
@@ -893,7 +889,7 @@ def calculation_forMomentum(df):
         nperiod_MinMax_df=MinMax_Diff(nperiod_df_change,20) #cal MinMax Diverg. difference
         nperiod_MinMax_price=MinMax_Diff(readDf["Price"].values,20) #fixed ,cal MinMax Price difference
         df_duration=np.array(nperiod_MinMax_df)/np.array(nperiod_MinMax_price)
-        print(df_duration)
+        
         readDf["Rolling correlation "+imp_var+" % Rank"]=rollingCorrdf
         readDf["Rolling correlation Avg MF % Rank"]=rollingCorrAvg
         readDf["20 period percentage price change"]=nperiod_price_change
@@ -916,7 +912,7 @@ def instrument_selection_rules(df):
 
 
 def Plot_Items(instrument_name,flag):
-    data = pd.read_csv(instrument_name+".csv")
+    data = pd.read_csv("all_folders/"+instrument_name+".csv")
     data = data.tail(90)
     data.set_index('Date',inplace=True)
     data.index = data.index.map(str)
@@ -1046,9 +1042,9 @@ def Plot_Items(instrument_name,flag):
 
 def Plot_Multi_Axes(instrument_name,flag):
     #instrument_name = "AUD_USD"
-    data = pd.read_csv(instrument_name + ".csv")
+    data = pd.read_csv("all_folders/"+instrument_name + ".csv")
     data = data.tail(90)
-    print(len(data))
+   
     data.set_index('Date',inplace=True)
     data.index = data.index.map(str)
 
@@ -1109,7 +1105,7 @@ def Plot_Multi_Axes(instrument_name,flag):
 
 
 def decompose_plot(instrument_name,flag):
-    data = pd.read_csv(instrument_name + ".csv")
+    data = pd.read_csv("all_folders/"+instrument_name + ".csv")
     data = data.tail(90)
     data.set_index('Date',inplace=True)
     data.index = data.index.map(str)
@@ -1150,20 +1146,20 @@ def decompose_plot(instrument_name,flag):
 
 
 def Divergence_Plots():
-    data = pd.read_excel("ordered_target_data.xlsx")
+    data = pd.read_excel("all_folders/"+"ordered_target_data.xlsx")
 
-    print(data.head())
+  
     # Making a copy of data frame and dropping all the null values
     df_copy = data.copy()
     df_copy = df_copy.dropna(axis = 1)
     df_copy = df_copy.dropna()
 
-    print(len(df_copy))
+
     
     X = df_copy[["CCI","RSI","MACD","WPCTR","pdi","mdi","adx","Divergence Factor 1","Divergence Factor 2","Divergence Factor 3","Divergence Factor 4"]]
     y = df_copy["DF Avg Rank"]
 
-    print(len(X),len(y))
+
     # Embedded method
     reg = LassoCV()
     reg.fit(X, y)
@@ -1201,19 +1197,18 @@ def Divergence_Plots():
 
 
 def Divergence_Plots_For_Single_Instrument(instrument_name,flag):
-    data = pd.read_csv(instrument_name + ".csv")
+    data = pd.read_csv("all_folders/"+instrument_name + ".csv")
 
     # Making a copy of data frame and dropping all the null values
     df_copy = data.copy()
     df_copy = df_copy.dropna(axis = 1)
     df_copy = df_copy.dropna()
 
-    print(len(df_copy))
     
     X = df_copy[["CCI","RSI","MACD","WPCTR","pdi","mdi","adx","Divergence Factor 1","Divergence Factor 2","Divergence Factor 3","Divergence Factor 4"]]
     y = df_copy["DF Avg Rank"]
 
-    print(len(X),len(y))
+    
     # Embedded method
     reg = LassoCV()
     reg.fit(X, y)
@@ -1224,7 +1219,7 @@ def Divergence_Plots_For_Single_Instrument(instrument_name,flag):
     print("Lasso picked " + str(sum(coef != 0)) + " variables and eliminated the other " +  str(sum(coef == 0)) + " variables")
     
     dic={"instrumen_name":instrument_name,"imp_var":X.columns,"score":reg.coef_,"flag":flag}
-
+    print(dic)
     rdf=pd.DataFrame(dic)
     #df.drop(df[df.score<=0].index, inplace=True)
     rdf= rdf[rdf.score>0]
@@ -1257,19 +1252,19 @@ def Divergence_Plots_For_Single_Instrument(instrument_name,flag):
 
     
 def Momentum_Plots_For_Single_Instrument(instrument_name,flag):
-    data = pd.read_csv(instrument_name+".csv")
+    data = pd.read_csv("all_folders/"+instrument_name+".csv")
 
     # Making a copy of data frame and dropping all the null values
     df_copy = data.copy()
     df_copy = df_copy.dropna(axis = 1)
     df_copy = df_copy.dropna()
 
-    print(len(df_copy))
+   
 
     X = df_copy[["CCI","RSI","MACD","WPCTR","pdi","mdi","adx","Momentum Factor 1","Momentum Factor 2","Momentum Factor 3","Momentum Factor 4"]]
     y = df_copy["MF Avg Rank"]
 
-    print(len(X),len(y))
+    
     # Embedded method
     reg = LassoCV()
     reg.fit(X, y)
@@ -1282,7 +1277,7 @@ def Momentum_Plots_For_Single_Instrument(instrument_name,flag):
     print("Lasso picked " + str(sum(coef != 0)) + " variables and eliminated the other " + str(sum(coef == 0)) + " variables")
 
     dic={"instrumen_name":instrument_name,"imp_var":X.columns,"score":reg.coef_,"flag":flag}
-
+    print(dic)
     rdf=pd.DataFrame(dic)
     #df.drop(df[df.score<=0].index, inplace=True)
     rdf= rdf[rdf.score>0]
@@ -1315,9 +1310,9 @@ def Momentum_Plots_For_Single_Instrument(instrument_name,flag):
 
 
 def plot_peaks_troughs(inst_name,flag):
-    df=pd.read_csv(inst_name+".csv")
+    df=pd.read_csv("all_folders/"+inst_name+".csv")
     merge_all_to_a_book(glob.glob(inst_name+".csv"), inst_name+".xlsx")
-    df_new=pd.read_excel(inst_name+".xlsx")
+    df_new=pd.read_excel("all_folders/"+inst_name+".xlsx")
     for i in range(len(df_new)):
         date = df.loc[i,"Date"]
         date_upd = date.split("+")[0]
@@ -1393,7 +1388,7 @@ def Graph_Plots_For_Individual_Instrument(instrument_lst,flag):
         plot_peaks_troughs(instrument,flag)
         Plot_Multi_Axes(instrument,flag)
         #better corr graph
-        data=pd.read_csv(instrument+".csv",index_col="Date")
+        data=pd.read_csv("all_folders/"+instrument+".csv",index_col="Date")
         plt.figure(figsize=(15, 10))
         corrplot(data.corr(), size_scale=500,instrument_name=instrument)
         if flag==True:
