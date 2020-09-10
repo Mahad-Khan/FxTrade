@@ -1174,7 +1174,7 @@ def Divergence_Plots():
     #df.drop(df[df.score<=0].index, inplace=True)
     dff = dff[dff.score>0]
     print(dff)
-    dff.to_csv("ordered_target_data_impVar.csv")
+    dff.to_csv("all_folders"+"\\"+"ordered_target_data_impVar.csv")
 
     fig,ax = plt.subplots(1)
     sns.set()
@@ -1311,7 +1311,7 @@ def Momentum_Plots_For_Single_Instrument(instrument_name,flag):
 
 def plot_peaks_troughs(inst_name,flag):
     df=pd.read_csv("all_folders/"+inst_name+".csv")
-    merge_all_to_a_book(glob.glob(inst_name+".csv"), inst_name+".xlsx")
+    merge_all_to_a_book(glob.glob("all_folders/"+inst_name+".csv"), "all_folders/"+inst_name+".xlsx")
     df_new=pd.read_excel("all_folders/"+inst_name+".xlsx")
     for i in range(len(df_new)):
         date = df.loc[i,"Date"]
@@ -1426,6 +1426,7 @@ def clear_direc(path):
 if __name__ == '__main__':
     clear_direc("man_select_inst")
     clear_direc("rule_select_inst")
+    clear_direc("all_folders")
     main()
 
 
